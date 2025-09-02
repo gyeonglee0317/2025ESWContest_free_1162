@@ -8,7 +8,6 @@ TYPE_HEART_RATE   = 0x0A15
 TYPE_BREATH_RATE  = 0x0A14
 
 class MmWaveSensor:
-    """mmWave 센서 데이터 수신/분석"""
     def __init__(self, port=SERIAL_PORT, baudrate=BAUD_RATE, debug=False):
         self.port, self.baudrate, self.debug = port, baudrate, debug
         self.ser = None

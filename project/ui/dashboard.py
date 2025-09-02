@@ -10,7 +10,7 @@ def render_dashboard_exact(frame_driver, frame_pedal,
                            pedal_flag_active=False, condition_flags_active=False, pedal_misuse_detected=False):
     canvas = np.zeros((H, W, 3), dtype=np.uint8)
 
-    # 좌측 비디오 타일
+    # 좌측 비디오
     d_x = int(W*0.01); d_y = int(H*0.02); d_w = int(W*0.45); d_h = int(H*0.45)
     cv.rectangle(canvas, (d_x, d_y), (d_x+d_w, d_y+d_h), (255,255,0), 3)
     _fit_into_box(canvas, (d_x+3, d_y+3, d_w-6, d_h-6), frame_driver)

@@ -8,7 +8,7 @@ import cv2 as cv
 import numpy as np
 from PIL import ImageFont, ImageDraw, Image
 
-# ── 내부 모듈
+# 내부 모듈
 from sensors.mmwave import MmWaveSensor
 from sensors.fsr import FSRMonitor
 from sensors.spi import open_spi, xfer_once
@@ -25,7 +25,7 @@ from ui.overlay import draw_fullscreen_overlay_center_text
 from common.calibration import CalibrationManager
 from common.helpers import enhance_frame_for_face_detection
 
-# ── Mediapipe(face mesh)
+# Mediapipe FaceMesh
 import mediapipe as mp
 mp_face_mesh = mp.solutions.face_mesh
 FACE_MESH = mp_face_mesh.FaceMesh(
@@ -45,7 +45,7 @@ def create_jetson_csi_pipeline(camera_id=0, capture_width=1280, capture_height=7
     )
 
 def main():
-    # ── Driver 카메라 열기 (Jetson 파이프라인 → 실패시 0번)
+    # 운전자 카메라 열기 (Jetson 파이프라인 → 실패시 0번)
     pipeline = create_jetson_csi_pipeline(flip_method=4)
     cap_driver = cv.VideoCapture(pipeline, cv.CAP_GSTREAMER)
     if not cap_driver.isOpened():
@@ -53,7 +53,7 @@ def main():
         if not cap_driver.isOpened():
             print("Error: cannot open any camera"); return
 
-    # ── Pedal 카메라(원한다면 URL/인덱스 교체)
+    # 페달 카메라
     pedal_cap = cv.VideoCapture(1)
     pedal_connected = pedal_cap.isOpened()
 
@@ -82,18 +82,18 @@ def main():
         except Exception as e:
             print(f"[OBD] init error: {e}")
 
-    # ── 그래프 히스토리
+    # 그래프 히스토리
     hr_hist, br_hist = deque(maxlen=200), deque(maxlen=200)
 
-    # ── 경과 타이머 상태
+    # 경과 타이머 상태
     drowsy_on_since = None
     twofoot_on_since = None
     forward_off_since = None
 
-    # ── 임계값(초)
+    # 임계값(초)
     DROWSY_WARN_SEC, TWOFOOT_WARN_SEC, FORWARD_WARN_SEC = 3.0, 5.0, 3.0
 
-    # ── SPI 준비
+    # SPI 준비
     spi = open_spi()
     last_accel_percent = 0
     t0 = time.time()
@@ -109,29 +109,29 @@ def main():
         if not ok: break
         frame = cv.flip(frame, 1)
 
-        # ── 전처리 & 랜드마크
+        # 전처리 & 랜드마크
         enhanced = enhance_frame_for_face_detection(frame)
         rgb = cv.cvtColor(enhanced, cv.COLOR_BGR2RGB); rgb.flags.writeable = False
         results = FACE_MESH.process(rgb); rgb.flags.writeable = True
         face_lms = results.multi_face_landmarks[0] if results.multi_face_landmarks else None
         lm_raw = face_lms.landmark if face_lms else None
 
-        # ── 캘리브레이션 진행 상태
+        # 캘리브레이션 진행 상태
         is_calibrating, cal_remaining = calibration.update()
 
-        # ── 각 모듈
+        # 각 모듈
         emotion = emo.infer(frame, face_lms) if face_lms is not None else "No Face"
         ear, is_drowsy = drowsy.process(frame, lm_raw)
         is_head_down, head_status = head_pos.process(lm_raw)
         forward_ratio, attn_status, is_forward_looking = forward.process(lm_raw)
 
-        # ── mmWave
+        # mmWave 센서(심박수,호흡수)
         heart_rate = mmwave_sensor.get_heart_rate()
         resp_rate  = mmwave_sensor.get_breath_rate()
         if heart_rate is not None: hr_hist.append(float(heart_rate))
         if resp_rate  is not None: br_hist.append(float(resp_rate))
 
-        # ── 페달 카메라
+        # 페달 카메라
         pedal_view = None
         if pedal_connected:
             ok_p, pf = pedal_cap.read()
@@ -140,7 +140,7 @@ def main():
                     pedal_tracker.calibrate_brake_simple(pf)
                 pedal_view, _ = pedal_tracker.update(pf)
 
-        # ── OBD (없으면 데모 값)
+        # OBD (없으면 데모 값)
         if obd:
             rpm   = obd.get_rpm()
             speed = obd.get_speed()
@@ -159,7 +159,7 @@ def main():
         last_accel_percent = accel_percent
         brake_percent = pedal_tracker.get_brake_percent()
 
-        # ── SPI 전송/수신
+        # SPI 전송/수신
         emotion_map = {"Neutral":0, "Happy":1, "Sad":2, "Surprise":4, "Angry":3}
         expression_code = emotion_map.get(emotion, 0)
         try:
@@ -178,7 +178,7 @@ def main():
         condition_flags_active= bool(spi_result.get("cond_flags", 0))
         pedal_misuse_detected = bool(spi_result.get("pm", 0))
 
-        # ── FSR 상태
+        # FSR 상태
         fsr_pressed = fsr.get_pressed() if fsr.available else None
         now_ts = time.time()
 
@@ -196,7 +196,7 @@ def main():
         twofoot_dur = (now_ts - twofoot_on_since)  if twofoot_on_since  else 0.0
         forward_dur = (now_ts - forward_off_since) if forward_off_since else 0.0
 
-        # ── 대시보드 렌더
+        # 대시보드 렌더
         dash = render_dashboard_exact(
             frame_driver=frame,
             frame_pedal=pedal_view,
@@ -211,7 +211,7 @@ def main():
             pedal_misuse_detected=pedal_misuse_detected
         )
 
-        # ── 경고/오버레이
+        # 경고/오버레이
         overlay_active = False
         if is_calibrating:
             draw_fullscreen_overlay_center_text(
@@ -238,7 +238,7 @@ def main():
             calibration.start_calibration()
             drowsy.recalibrate(); forward.recalibrate(); head_pos.recalibrate(); pedal_tracker.recalibrate()
 
-    # ── 종료
+    # 종료
     try: mmwave_sensor.stop()
     except: pass
     try: fsr.stop()

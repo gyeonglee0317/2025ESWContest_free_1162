@@ -3,5 +3,5 @@ numpy
 pillow
 pyserial
 spidev
-adafruit-circuitpython-ads1x15
+adafruit-ads1x15
 mediapipe

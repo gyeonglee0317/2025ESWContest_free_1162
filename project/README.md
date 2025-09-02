@@ -1,4 +1,4 @@
-# 프로젝트 이름: AI 기반 운전자 상태 모니터링 및 페달 오조작 방지 시스템
+# 프로젝트 명: AI 기반 운전자 상태 모니터링 및 페달 오조작 방지 시스템
 
 ## 기존 소프트웨어 출처
 - Emotion 인식 모델: [REWTAO/Facial-emotion-recognition-using-mediapipe](https://github.com/REWTAO/Facial-emotion-recognition-using-mediapipe)

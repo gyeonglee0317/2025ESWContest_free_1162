@@ -1,0 +1,7 @@
+opencv-python
+numpy
+pillow
+pyserial
+spidev
+adafruit-circuitpython-ads1x15
+mediapipe

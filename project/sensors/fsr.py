@@ -4,7 +4,7 @@ import adafruit_ads1x15.ads1115 as ADS
 from adafruit_ads1x15.analog_in import AnalogIn
 
 class FSRMonitor:
-    """ADS1115 FSR(발판 압력) → 눌림 여부 비차단 제공"""
+    """ADS1115 FSR(발판 압력) → 센서 눌림 여부 판단"""
     def __init__(self, i2c_scl=None, i2c_sda=None,
                  threshold=2000, check_interval=0.05,
                  not_pressed_duration=5.0, debug=False):

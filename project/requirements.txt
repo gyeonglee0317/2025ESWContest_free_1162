@@ -1,7 +1,0 @@
-opencv-python
-numpy
-pillow
-pyserial
-spidev
-adafruit-ads1x15
-mediapipe
